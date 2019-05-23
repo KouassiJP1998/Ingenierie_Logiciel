@@ -1,0 +1,26 @@
+class Capteur
+-- classe pour modéliser les capteurs
+instance variables
+protected ID	: nat := 0; -- identité des capteurs
+protected Type	: Controleur`typeActeur := <NUL>;  --type des capteurs
+protected Valeur	: nat := 0;   -- valeur mesurée par le capteur
+
+operations
+--donner l'identité d'un capteur
+public GetID: () ==> nat
+	GetID() ==
+		return ID;
+--donner le type  d'un capteur
+public GetType: () ==> Controleur`typeActeur
+	GetType() ==
+		return Type;
+--retourne la valeur mesurée par le capteur
+public ReadValeur: () ==> nat
+	ReadValeur() ==
+		return Valeur;
+--
+--Fonction réalisée par un capteur: renvoyée à la responsabilité de la sous-classe en fonction du capteur utilisé
+public Action: () ==> ()
+	Action() ==
+		is subclass responsibility
+end Capteur

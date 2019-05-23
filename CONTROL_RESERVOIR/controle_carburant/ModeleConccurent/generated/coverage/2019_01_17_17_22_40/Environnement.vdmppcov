@@ -1,0 +1,91 @@
+class Environnement is subclass of ThreadDeBase
+
+
+-- l'environnement: reservoir + carburant
+--nous sommes dans un cas typique où c'est l'environnement qui dirige le flux de contrôle
+types
+-- chaque donnée d'entrée est un stimulus: (Température, Pression, Date)
+public data	= int * int * nat   
+
+instance variables
+--les entrées/sorties
+private io       : IO := new IO();
+private datas	 : seq of data := []; -- liste des stimuli
+
+--durée de simulation
+private DuréeSimulation	 : nat;
+private fini : bool := false   -- indicateur de fin de flux de données(stimuli)   environnement -> systeme de regulation
+
+
+operations
+
+public Environnement: seq of char * nat1 * bool ==> Environnement
+Environnement(fichierStimuli, p, estP) ==
+ (periode := p;
+  estPeriodique := estP;
+  let mk_(-,mk_(durée, input)) = io.freadval[nat * seq of data](fichierStimuli) 
+  in
+   (datas := input;
+    DuréeSimulation:= durée;
+   );
+   
+         IO`print("\n************************************************************************************************************************");
+         IO`print("\n       Temperature(t) et pression(p) du carburant a l'instant t=0  ");  IO`print("\n");                     		
+         IO`print("          t= ");IO`print(SystemeRTP`laCible.ReadTemp()); IO`print("      p=");  IO`print(SystemeRTP`laCible.ReadPress()) ;                               
+         IO`print("\n************************************************************************************************************************");
+   
+ );
+ 
+ 
+--SIMULATION DES CHANGEMENTS 
+--données d'entrées du système de régulation
+--lecture à partir du fichier "FlotStimuli.txt"  de la séquence des entrées: "inlines" 
+private produireStimuli: () ==> ()
+produireStimuli() ==
+ (if len datas > 0
+  then (dcl dateActuelle : nat :=Animation`horloge.GetTime();
+        let mk_(temperature, pression, date) = hd datas
+         in
+           (if date =  dateActuelle 
+           then (SystemeRTP`laCible.SetTemp(temperature);
+           SystemeRTP`laCible.SetPress(pression);  
+           IO`print("\n**********************************************************************************************************");
+           IO`print("\n      Temperature(t) et pression(p) du carburant détectées par les capteurs à l'instant:  "); 
+           IO`print(dateActuelle); 
+           IO`print("\n");                     		
+           IO`print("                     t= ");
+           IO`print(temperature); 
+           IO`print("      p=");  IO`print(pression) ;                               
+           IO`print("\n**********************************************************************************************************");
+           datas := tl datas;
+           return
+           );
+        );
+  )
+  else (fini :=false;
+        return
+       );
+ );	
+ 
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+  
+public Finir: () ==> ()
+Finir
+() ==
+  fini:= true;
+
+protected Action: () ==> ()
+Action() ==
+ (if Animation`horloge.GetTime() < DuréeSimulation
+  then produireStimuli()   
+  else fini := true;     
+ );
+
+
+sync
+ per estFini => fini;
+
+end Environnement

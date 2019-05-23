@@ -1,0 +1,26 @@
+class Dispenseur
+--classe pour modeliser les Dispenseurs
+instance variables
+
+protected ID	: nat := 0;   -- identité
+protected Type	: Controleur`typeActeur := <NUL>;  --type Dispenseurs
+protected Corr	: Controleur`typeMissile := <NUL>;   -- type de correction
+protected Env	: Contexte := new Contexte();         -- environnement du regulateur
+
+operations
+--donne l'identité d'un Regulateur
+public GetID: () ==> nat
+	GetID() ==
+		return ID;
+		
+--donne le type d'un Regulateur
+public GetType: () ==> Controleur`typeActeur
+	GetType() ==
+		return Type;
+
+--Fonction du regulateur: de la responsabilité de la sous-classe en fonction du type régulateur appliqué
+public Action: () ==> ()
+	Action() ==
+		is subclass responsibility
+
+end Dispenseur

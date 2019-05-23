@@ -1,0 +1,51 @@
+class Contexte
+
+instance variables
+-- variables environnement
+private envDistance	 : nat;
+private envLatitude : nat;
+private envLongitude : nat;
+
+operations
+-- fixe une valeur initiale
+public Contexte: int * int * int ==> Contexte
+Contexte(distance0, latitude0, longitude0) ==
+ (envDistance := distance0;
+  envLatitude := latitude0;
+  envLongitude := longitude0;
+ );
+ 
+--actions de base de asservissement
+public SetDistance: nat ==> ()
+	SetDistance(t) ==
+  envDistance := t;
+
+public SetLatitude: nat ==> ()
+	SetLatitude(p) ==
+  envLatitude:= p;
+
+public SetLongitude: nat ==> ()
+	SetLongitude(r) ==
+  envLongitude:= r;
+
+public ReadDistance: () ==> nat
+	ReadDistance() ==
+  return envDistance;
+
+public ReadLatitude: () ==> nat
+ReadLatitude() ==
+  return envLatitude;
+  
+public ReadLongitude: () ==> nat
+ReadLongitude() ==
+  return envLongitude;
+
+sync
+  mutex(SetDistance);
+  mutex(ReadDistance, SetDistance);
+  mutex(SetLatitude);
+  mutex(ReadLatitude,SetLatitude);
+  mutex(SetLongitude);
+  mutex(ReadLongitude,SetLongitude);
+
+end Contexte

@@ -1,0 +1,28 @@
+class RegulateurPression is subclass of Regulateur
+-- classe pour modeliser le système de ventilation
+operations
+
+public RegulateurPression: nat * Controleur`typeActeur ==> RegulateurPression
+	RegulateurPression (id, type) ==
+		(ID := id;
+		Type := type;
+		Corr := <NUL>
+		);
+--simule action du RegulateurPression
+
+	public Action: () ==> ()
+	Action() ==
+		(if (Corr = <INC>)    then Application`env.IncPress()
+		elseif (Corr = <DEC>) then Application`env.DecPress();
+		);
+
+public SetCorrection: Controleur`correction ==> ()
+	SetCorrection(cor) ==
+		Corr := cor
+pre (cor = <INC>) or (cor = <DEC>) or (cor = <NUL>);
+
+public GetCorrection: () ==> Controleur`correction
+	GetCorrection() ==
+		return Corr;
+
+end RegulateurPression

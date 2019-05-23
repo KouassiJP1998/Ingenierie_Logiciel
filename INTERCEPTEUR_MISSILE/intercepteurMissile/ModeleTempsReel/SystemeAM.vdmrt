@@ -1,0 +1,64 @@
+class SystemeAM
+-- classe qui configure le syst�me: Pilote + 6 Dispenseurs + 3 capteurs
+instance variables
+  ---1 cpu pour le controleur 
+              cpu1 : CPU := new CPU(<FCFS>, 1E6);
+  ---3 cpu capteurs: un par chaque capteur
+              cpu2 : CPU := new CPU(<FCFS>, 1E6);
+              cpu3 : CPU := new CPU(<FCFS>, 1E6);
+              cpu4 : CPU := new CPU(<FCFS>, 1E6);
+              
+  ---6 cpu régulateurs: un pour chaque  dispenseurs
+              cpu5 : CPU := new CPU(<FCFS>, 1E6);
+              cpu6 : CPU := new CPU(<FCFS>, 1E6);
+              cpu7 : CPU := new CPU(<FCFS>, 1E6);
+              cpu8 : CPU := new CPU(<FCFS>, 1E6);
+              cpu9 : CPU := new CPU(<FCFS>, 1E6);
+              cpu10 : CPU := new CPU(<FCFS>, 1E6);
+
+  -- bus connexion controleur avec les capteurs et les régulateurs
+  bus1 : BUS := new BUS(<FCFS>, 1E3, {cpu1, cpu2, cpu3, cpu4, cpu5, cpu6, cpu7, cpu8, cpu9, cpu10});
+
+instance variables
+--cr�e des instances "public static" pour permettre l'acc�s � partir de toutes les classes du mod�le 
+public static  Pilote	: Controleur := new Controleur(25, 90, 180);
+public static CapteurDistance1	: CapteurDistance := new CapteurDistance(1, <CAPTEUR_DISTANCE>, 0, leContexte,3, true);  -- un seul capteur de distance
+public static CapteurLatitude1	: CapteurLatitude := new CapteurLatitude(2, <CAPTEUR_LATITUDE>, 0, leContexte, 3, true);  -- un seul capteur de latitude
+public static CapteurLongitude1	: CapteurLongitude := new CapteurLongitude(3, <CAPTEUR_LONGITUDE>, 0, leContexte, 3, true);  -- un seul capteur de longitude
+public static DispenseurA1	: DispenseurA := new DispenseurA(4, <DISPENSEUR_A>, leContexte, 5, true);
+public static DispenseurA2	: DispenseurA := new DispenseurA(5, <DISPENSEUR_A>, leContexte, 5, true);
+public static DispenseurB1	: DispenseurB := new DispenseurB(6, <DISPENSEUR_B>, leContexte, 5, true);
+public static DispenseurB2	: DispenseurB := new DispenseurB(7, <DISPENSEUR_B>, leContexte, 5, true);
+public static DispenseurC1	: DispenseurC := new DispenseurC(8, <DISPENSEUR_C>, leContexte, 5, true);
+public static DispenseurC2	: DispenseurC := new DispenseurC(9, <DISPENSEUR_C>, leContexte, 5, true);
+
+operations
+-- Pilote g�re les acteurs suivants:3 capteurs + 6 dispenseurs
+
+public SystemeAM: () ==> SystemeAM
+	SystemeAM() ==
+		(
+		 -- déploiement des threads sur la plate forme cpu comme suit:
+          (
+-- on déploie le Pilote sur cpu1
+          cpu1.deploy(Pilote);
+-- on déploie sur cpu2        
+          cpu2.deploy(CapteurDistance1);
+-- on déploie  sur cpu3            
+          cpu3.deploy(CapteurLatitude1);
+-- on déploie  sur cpu4           
+          cpu4.deploy(CapteurLongitude1);
+-- on déploie sur cpu5      
+          cpu5.deploy(DispenseurA1);
+-- on déploie sur cpu6       
+          cpu6.deploy(DispenseurA2);
+-- on déploie sur cpu7      
+          cpu7.deploy(DispenseurB1);
+-- on déploie sur cpu8      
+          cpu8.deploy(DispenseurB2);
+-- on déploie sur cpu9    
+					cpu9.deploy(DispenseurC1);
+-- on déploie sur cpu10     
+          cpu10.deploy(DispenseurC2);
+          
+end SystemeAM

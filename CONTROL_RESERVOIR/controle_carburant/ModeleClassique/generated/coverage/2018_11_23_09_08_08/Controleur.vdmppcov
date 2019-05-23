@@ -1,0 +1,199 @@
+
+
+
+class Controleur
+-- classe pour modeliser le "controleur": pilote qui réalise l'asservissement
+
+types   
+--type des acteurs
+public typeActeur 	= <CAPTEUR_TEMPERATURE> | <CAPTEUR_PRESSION>  | <REGULATEUR_TEMPERATURE> | <REGULATEUR_PRESSION>| <NUL> ;
+--les corrections des régulateurs:Regulateur Pression + Régulateur Temperature
+public correction = <INC> | <DEC> | <NUL>;
+
+
+instance variables
+--indicateur
+private indicateur		: bool := true;
+
+-- valeur cible de la temperature
+private tempCible	: nat;
+
+-- valeur mesurée de la temperature 
+private Temp		: nat := 0;
+
+--valeur cible de la pression
+private pressionCible	: nat := 75;
+
+--valeur mesurée de la pression
+private Pression		: nat := 0;
+
+--valeur température délivrée par le capteur de température
+private envTemp	: nat;
+--valeur   délivrée par le capteur de pression
+private envPress	: nat;
+
+--numérotation des acteurs
+private ListeActeur	: map nat to typeActeur := { |-> };
+
+
+operations
+-- le controleur assure l'asservissement numerique en temperature et pression
+-- permet de fixer les consignes  tempCible et PressionCible qui sont passées en paramètres: au moment de l'instatiation à partir de la classe centrale SYSTEMERTP
+public Controleur: nat * nat ==> Controleur
+	Controleur(targetTemperature, targetPression) ==
+		(  tempCible :=    targetTemperature;
+		   pressionCible := targetPression;
+		   --IO`print("                     tCIBLE= ");IO`print(tempCible); IO`print("      pCIBLE=");  IO`print(pressionCible) ;                               
+      -- IO`print("\n*****************************************************************************************************");
+		);
+
+
+--mise à jour des valeurs des variables Temp et Pression en fonction  des mesures données par les capteurs
+public majValeurs: () ==> ()
+	majValeurs() ==
+		(for all r in set rng ListeActeur do
+			(if (r = <CAPTEUR_PRESSION>)
+			then Pression := SystemeRTP`CapteurPression1.ReadValeur();
+			if (r = <CAPTEUR_TEMPERATURE>)
+			then Temp := SystemeRTP`CapteurTemperature1.ReadValeur();			
+			);
+		);
+
+--retourne la température et le taux de pression mesurés par les capteurs
+public GetTemp: () ==> nat
+	GetTemp() ==
+		return Temp;
+
+public GetPression: () ==> nat
+	GetPression() ==
+		return Pression;
+
+
+
+--algorithme d'asservissement mettant en jeux un <CAPTEUR_TEMPERATURE> et un  <REGULATEUR_PRESSION>})
+private Algorithme: () ==> ()
+	Algorithme() ==
+	
+ (if (Pression > pressionCible and   Temp > tempCible)
+ --excès de pression => actionner Regulateur de pression 
+  then (
+  --baisser pression et temperature
+        SystemeRTP`RegulateurPression1.SetCorrection(<DEC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<DEC>);
+        indicateur := true;
+       )
+
+elseif (Pression > pressionCible and   Temp = tempCible)
+  then (
+  --baisser pression seulement
+        SystemeRTP`RegulateurPression1.SetCorrection(<DEC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<NUL>);
+        indicateur := true;
+       )
+
+  elseif (Pression > pressionCible and   Temp < tempCible)
+  then (
+ --baisser pression et augmenter temperature
+        SystemeRTP`RegulateurPression1.SetCorrection(<DEC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<INC>);
+        indicateur := true;
+       )
+       
+    elseif (Pression = pressionCible and   Temp < tempCible)
+  then (
+  --augmenter la température seulement
+        SystemeRTP`RegulateurPression1.SetCorrection(<NUL>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<INC>);
+        indicateur := true;
+       )
+ 
+     elseif (Pression = pressionCible and   Temp > tempCible)
+  then (
+ --baisser la temperature
+        SystemeRTP`RegulateurPression1.SetCorrection(<NUL>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<DEC>);
+        indicateur := true;
+       )   
+      elseif (Pression < pressionCible and   Temp < tempCible)
+  then (
+ --augmenter pression et temperature
+        SystemeRTP`RegulateurPression1.SetCorrection(<INC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<INC>);
+        indicateur := true;
+       )
+   elseif (Pression < pressionCible and   Temp = tempCible)
+  then (
+-- augmenter la pression seulement
+        SystemeRTP`RegulateurPression1.SetCorrection(<INC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<NUL>);
+        indicateur := true;
+       )
+     elseif (Pression < pressionCible and   Temp > tempCible)
+ -- augmenter pression et baisser temperature
+  then (
+        SystemeRTP`RegulateurPression1.SetCorrection(<INC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<DEC>);
+        indicateur := true;
+       )      
+       
+  elseif (Pression = pressionCible and  Temp = tempCible)
+ -- pression et température corrigées
+  then (
+        SystemeRTP`RegulateurPression1.SetCorrection(<NUL>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<NUL>);
+   
+        if indicateur
+        then 
+        DateRétablissementCibles(Application`horloge.GetTime());
+        indicateur := false;
+       );
+ );
+	
+
+
+--affiche la date à laquelle les valeurs nominales t= 8  et p= 70 sont atteintes
+private DateRétablissementCibles: nat ==> ()
+DateRétablissementCibles(t) ==
+(IO`print("\n      Les valeurs cibles t=");
+ IO`print(Temp);
+ IO`print(" et p=");
+ IO`print(Pression);
+ IO`print("%  sont rétablies:");
+ IO`print("à l'instant: ");
+ IO`print(t);  
+ );
+
+--pour configurer le système : les capteurs et régalateurs en présence
+
+public AjouterActeur: nat * typeActeur ==> ()
+	AjouterActeur(id, type) ==
+		(ListeActeur := ListeActeur ++ {id |-> type};
+		)
+pre id not in set dom ListeActeur
+post card(dom ListeActeur) = card(dom ListeActeur~) + 1;
+
+--*************************************************************
+--Le PILOTE agit en 3 phases d'asservissement:
+--   échantillonne les données fournies par les capteurs
+--   applique l'algorithme de correction
+--   actionne les régulateurs d'asservissement qui corrigent la tempereture et/ou  la pression    
+--************************************************************
+
+public Action: () ==> ()
+Action() ==
+ (
+--actionner CAPTEUR DE TEMPERATURE
+ SystemeRTP`CapteurTemperature1.Action();
+ --actionner CAPTEUR  DE PRESSION
+  SystemeRTP`CapteurPression1.Action();
+--mise à jour des mesures
+  majValeurs();
+--Appliquer l'algorithme de correction 
+  	Algorithme();
+   -- actionner REGULATEUR  DE PRESSION
+   SystemeRTP`RegulateurPression1.Action();
+--actionner  REGULATEUR  DE TEMPERATURE
+   SystemeRTP`RegulateurTemperature1.Action();
+ );
+
+end Controleur

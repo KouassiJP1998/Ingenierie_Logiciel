@@ -1,0 +1,54 @@
+class RegulateurTemperature is subclass of Regulateur, ThreadDeBase
+
+instance variables
+fini	: bool := false;
+
+
+operations
+
+public RegulateurTemperature: nat * Controleur`typeActeur * Cible * nat1 * bool ==> RegulateurTemperature
+RegulateurTemperature (id, type, envir, p, isP) ==
+ (ID := id;
+  Type := type;
+  Corr := <NUL>;
+  Env := envir;
+  periode := p;
+  estPeriodique := isP;
+ );
+
+
+public SetCorrection: Controleur`correction ==> ()
+SetCorrection(cor) ==
+  Corr := cor
+pre (cor = <INC>) or (cor = <DEC>) or (cor = <NUL>);
+
+public Finir: () ==> ()
+Finir() ==
+  fini := true;
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+
+protected Action: () ==> ()
+	Action() ==
+		(if (Corr = <INC>)    then Env.IncTemp()
+		elseif (Corr = <DEC>) then Env.DecTemp()
+    elseif (Corr = <NUL>) then skip;
+    --IO`print("\n**********************************************************************************************************");
+    --IO`print("\n COTE REGULATEUR TEMPERATURE:    Temperature  du carburant  l'instant: d=  "); 
+    --IO`print(Animation`horloge.GetTime());  IO`print("\n");                     		
+    --IO`print(" est: t= ");
+    --IO`print(Env.ReadTemp()); 
+    --IO`print(" après la correction:  "); 
+    --IO`print(Corr);                              
+    --IO`print("\n**********************************************************************************************************");
+    Corr := <NUL>; 	   
+
+		);
+ 
+ sync
+	 per estFini => fini;
+
+
+end RegulateurTemperature

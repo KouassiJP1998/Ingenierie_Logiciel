@@ -1,0 +1,48 @@
+class CapteurTemperature is subclass of Capteur, ThreadDeBase
+
+instance variables
+
+fini	: bool := false;
+
+operations
+
+public CapteurTemperature: nat * Controleur`typeActeur * nat * Cible * nat1 * bool ==> CapteurTemperature
+CapteurTemperature (id, type, val, envir, p, estP) ==
+ (ID := id;
+  Type := type;
+  Valeur := val;
+  Env := envir;
+  periode := p;
+  estPeriodique := estP;
+ );
+
+public Finir: () ==> ()
+Finir() ==
+  fini := true;
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+  
+protected Action: () ==> ()
+Action() ==
+  (Valeur := Env.ReadTemp();
+  
+ --IO`print("\n**********************************************************************************************************");
+ --IO`print("\n COTE CAPTEUR TEMPERATURE:     Temperature(t)  du carburant  l'instant: d=  "); 
+ --IO`print(Animation`horloge.GetTime());  IO`print("\n");                     		
+ --IO`print(" est: t= ");
+ --IO`print(Valeur);                               
+ --IO`print("\n**********************************************************************************************************");
+  
+  
+  )
+
+sync
+	
+  per estFini => fini;
+
+end CapteurTemperature
+
+
+

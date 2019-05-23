@@ -1,0 +1,17 @@
+class CapteurTemperature is subclass of Capteur
+--modelise un capteur de temperature
+operations
+
+public CapteurTemperature: nat * Controleur`typeActeur * nat ==> CapteurTemperature
+	CapteurTemperature(id, type, val) ==
+		(ID := id;
+		Type := type;
+		Valeur := val;
+		);
+-- action du CapteurTemperature:  "mesurer la température de l'environnement"
+public Action: () ==> ()
+	Action() ==
+		(Valeur := Application`env.ReadTemp();
+		);
+
+end CapteurTemperature

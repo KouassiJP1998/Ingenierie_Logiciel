@@ -1,0 +1,53 @@
+
+class RegulateurTemperature is subclass of Actionneur
+
+instance variables
+
+  fini : bool := false;
+
+operations
+
+public RegulateurTemperature: nat * Controleur`typeActeur  ==> RegulateurTemperature
+RegulateurTemperature (id, type) ==
+ (ID := id;
+  Type := type;
+  Corr := <NUL>;
+ );
+
+public Action: () ==> ()
+Action() ==
+ (dcl tempCorr: Controleur`correction := GetCorrection();
+  if (tempCorr = <INC>)
+  then Application`env.IncTemp()
+  elseif (tempCorr = <DEC>)
+  then Application`env.DecTemp()
+  elseif(tempCorr = <NUL>)
+  then skip;
+  tempCorr := <NUL>;  
+ );
+
+async public SetCorrection: Controleur`correction ==> ()
+SetCorrection(cor) ==
+  --cycles(1E3)
+  Corr := cor
+pre (cor = <INC>) or (cor = <DEC>) or (cor = <NUL>);
+
+public GetCorrection: () ==> Controleur`correction
+GetCorrection() ==
+  return Corr
+post (Corr = <INC>) or (Corr = <DEC>) or (Corr = <NUL>);
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+
+sync
+  --mutex(Action); -- à  prévoir
+  per estFini=> fini;
+  mutex(SetCorrection, GetCorrection);
+
+thread
+-- periode du thread (period, jitter, delay, offset)
+periodic(1000E6,0,0,0) (Action)
+
+end RegulateurTemperature

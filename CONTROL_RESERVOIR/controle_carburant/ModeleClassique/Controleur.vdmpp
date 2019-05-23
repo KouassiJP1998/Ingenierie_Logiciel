@@ -1,0 +1,154 @@
+class Controleur
+types   
+--type des acteurs
+public typeActeur 	= <CAPTEUR_TEMPERATURE> | <CAPTEUR_PRESSION>  | <REGULATEUR_TEMPERATURE> | <REGULATEUR_PRESSION>| <NUL> ;
+--les corrections des régulateurs:Regulateur Pression + Régulateur Temperature
+public correction = <INC> | <DEC> | <NUL>;
+
+
+instance variables
+private indicateur		: bool := true;
+private tempCible	: nat;
+private Temp		: nat := 0;
+private pressionCible	: nat := 75;
+private Pression		: nat := 0;
+private envTemp	: nat;
+private envPress	: nat;
+private ListeActeur	: map nat to typeActeur := { |-> };
+
+operations
+public Controleur: nat * nat ==> Controleur
+	Controleur(targetTemperature, targetPression) ==
+		(  tempCible :=    targetTemperature;
+		   pressionCible := targetPression;
+		   --IO`print("                     tCIBLE= ");IO`print(tempCible); IO`print("      pCIBLE=");  IO`print(pressionCible) ;                               
+      -- IO`print("\n*****************************************************************************************************");
+		);
+public majValeurs: () ==> ()
+	majValeurs() ==
+		(for all r in set rng ListeActeur do
+			(if (r = <CAPTEUR_PRESSION>)
+			then Pression := SystemeRTP`CapteurPression1.ReadValeur();
+			if (r = <CAPTEUR_TEMPERATURE>)
+			then Temp := SystemeRTP`CapteurTemperature1.ReadValeur();			
+			);
+		);
+
+public GetTemp: () ==> nat
+	GetTemp() ==
+		return Temp;
+
+public GetPression: () ==> nat
+	GetPression() ==
+		return Pression;
+
+
+private Algorithme: () ==> ()
+	Algorithme() ==
+	
+ (if (Pression > pressionCible and   Temp > tempCible)
+ --excès de pression => actionner Regulateur de pression 
+  then (
+  --baisser pression et temperature
+        SystemeRTP`RegulateurPression1.SetCorrection(<DEC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<DEC>);
+        indicateur := true;
+       )
+
+elseif (Pression > pressionCible and   Temp = tempCible)
+  then (
+  --baisser pression seulement
+        SystemeRTP`RegulateurPression1.SetCorrection(<DEC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<NUL>);
+        indicateur := true;
+       )
+
+  elseif (Pression > pressionCible and   Temp < tempCible)
+  then (
+ --baisser pression et augmenter temperature
+        SystemeRTP`RegulateurPression1.SetCorrection(<DEC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<INC>);
+        indicateur := true;
+       )
+       
+    elseif (Pression = pressionCible and   Temp < tempCible)
+  then (
+  --augmenter la température seulement
+        SystemeRTP`RegulateurPression1.SetCorrection(<NUL>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<INC>);
+        indicateur := true;
+       )
+ 
+     elseif (Pression = pressionCible and   Temp > tempCible)
+  then (
+ --baisser la temperature
+        SystemeRTP`RegulateurPression1.SetCorrection(<NUL>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<DEC>);
+        indicateur := true;
+       )   
+      elseif (Pression < pressionCible and   Temp < tempCible)
+  then (
+ --augmenter pression et temperature
+        SystemeRTP`RegulateurPression1.SetCorrection(<INC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<INC>);
+        indicateur := true;
+       )
+   elseif (Pression < pressionCible and   Temp = tempCible)
+  then (
+-- augmenter la pression seulement
+        SystemeRTP`RegulateurPression1.SetCorrection(<INC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<NUL>);
+        indicateur := true;
+       )
+     elseif (Pression < pressionCible and   Temp > tempCible)
+ -- augmenter pression et baisser temperature
+  then (
+        SystemeRTP`RegulateurPression1.SetCorrection(<INC>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<DEC>);
+        indicateur := true;
+       )      
+       
+  elseif (Pression = pressionCible and  Temp = tempCible)
+ -- pression et température corrigées
+  then (
+        SystemeRTP`RegulateurPression1.SetCorrection(<NUL>);
+        SystemeRTP`RegulateurTemperature1.SetCorrection(<NUL>);
+   
+        if indicateur
+        then 
+        DateRétablissementCibles(Application`horloge.GetTime());
+        indicateur := false;
+       );
+ );
+	
+
+
+--affiche la date à laquelle les valeurs nominales t= 8  et p= 70 sont atteintes
+private DateRétablissementCibles: nat ==> ()
+DateRétablissementCibles(t) ==
+(IO`print("\n      Les valeurs cibles t=");
+ IO`print(Temp);
+ IO`print(" et p=");
+ IO`print(Pression);
+ IO`print("%  sont rétablies:");
+ IO`print("à l'instant: ");
+ IO`print(t);  
+ );
+public AjouterActeur: nat * typeActeur ==> ()
+	AjouterActeur(id, type) ==
+		(ListeActeur := ListeActeur ++ {id |-> type};
+		)
+pre id not in set dom ListeActeur
+post card(dom ListeActeur) = card(dom ListeActeur~) + 1;
+
+public Action: () ==> ()
+Action() ==
+ (
+ SystemeRTP`CapteurTemperature1.Action();
+  SystemeRTP`CapteurPression1.Action();
+  majValeurs();
+  	Algorithme();
+   SystemeRTP`RegulateurPression1.Action();
+   SystemeRTP`RegulateurTemperature1.Action();
+ );
+end Controleur

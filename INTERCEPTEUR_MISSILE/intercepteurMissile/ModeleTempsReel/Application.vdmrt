@@ -1,0 +1,20 @@
+class Application
+--cette classe qui fait interagir les diferents composants du système: elle lance la simulation 
+
+instance variables
+--crée un environnement: "env" qui produit des stimuli selon le  scenario décrit dans le fichier "scenario.txt"
+static public env : Environnement := new Environnement("scenarioApplication.txt");
+
+--crée une instance de la base de temps(horloge): horloge= temp de référence
+--static public horloge : Horloge := new Horloge();
+operations
+
+public Simuler: () ==> ()
+Simuler() ==
+ (-- activer environment pour créer un stimuli
+  --env.stimuli();--
+  IO`print("\n Simulation terminée  à l'instant: ");
+  --IO`print(horloge.GetTime());
+ );
+
+end Application

@@ -1,0 +1,33 @@
+class CapteurLongitude is subclass of Capteur, ThreadDeBase
+--modelise un capteur de latitude
+instance variables
+
+fini : bool := false;
+operations
+
+public CapteurLongitude: nat * Controleur`typeActeur * nat * Contexte * nat1 * bool ==> CapteurLongitude
+	CapteurLongitude(id, type, val, envir, p, estP) ==
+		(ID := id;
+		Type := type;
+		Valeur := val;
+		Env := envir;
+		periode := p;
+		estPeriodique := estP;
+		);
+public Finir: () ==> ()
+Finir() ==
+  fini := true;
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+  
+public Action: () ==> ()
+Action() ==
+  (Valeur := Env.ReadLongitude();  
+  )
+
+sync
+  per estFini => fini;
+  
+end CapteurLongitude

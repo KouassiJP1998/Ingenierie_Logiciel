@@ -1,0 +1,26 @@
+class DispenseurA is subclass of Dispenseur
+operations
+
+public DispenseurA: nat * Controleur`typeActeur ==> DispenseurA
+	DispenseurA (id, type) ==
+		(ID := id;
+		Type := type;
+		Corr := <NUL>
+		);
+--simule action du DispenseurA
+
+	public Action: () ==> ()
+	Action() ==
+		(if (Corr = <A>)    then Application`env.DispA()
+		);
+
+public SetCorrection: Controleur`typeMissile ==> ()
+	SetCorrection(cor) ==
+		Corr := cor
+pre (cor = <A>) or (cor = <NUL>);
+
+public GetCorrection: () ==> Controleur`typeMissile
+	GetCorrection() ==
+		return Corr;
+
+end DispenseurA

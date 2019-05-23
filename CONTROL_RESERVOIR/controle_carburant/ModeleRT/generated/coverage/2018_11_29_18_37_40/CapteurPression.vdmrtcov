@@ -1,0 +1,33 @@
+
+class CapteurPression is subclass of Capteur
+
+instance variables
+
+  fini : bool := false;
+  
+operations
+
+public CapteurPression: nat * Controleur`typeActeur * nat ==> CapteurPression
+CapteurPression (id, type, val) ==
+ (ID := id;
+  Type := type;
+  Valeur := val;
+ );
+
+public Action: () ==> ()
+Action () ==
+  Valeur := Application`env.ReadPression() ;
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+
+sync
+  --mutex(Action);	-- inutile!
+  per estFini => fini;
+
+thread
+-- periode du thread (periode, jitter, delay, offset)
+periodic(1000E6,0,0,0) (Action)
+
+end CapteurPression

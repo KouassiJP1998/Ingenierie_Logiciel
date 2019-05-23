@@ -1,0 +1,39 @@
+class ThreadDeBase
+	-- pour créer un thread générique: il appelle opération action() laquelle est générique
+	--                              - action de capteur 
+	--                               -action de régulateur
+	--                               -action de l'environnement
+instance variables
+--période du thread
+protected periode : nat1 := 1;
+protected estPeriodique : bool := true;
+
+
+operations
+
+protected ThreadDeBase : () ==> ThreadDeBase
+ThreadDeBase() ==
+ (Animation`horloge.EnregisterThread(self);
+  if(not Animation`horloge.EstInitialisé())
+  then start(self);  
+ );
+
+protected Action : () ==> ()
+Action() ==
+  is subclass responsibility
+
+thread
+ (if estPeriodique
+  then (while true
+        do 
+         (Action();
+         Animation`horloge.Wait(periode);
+         )
+       )
+  else (Action();
+       Animation`horloge.Wait(0);
+       Animation`horloge.DesenregistrerThread();
+       )
+ );
+
+end ThreadDeBase

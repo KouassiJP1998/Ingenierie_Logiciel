@@ -1,0 +1,39 @@
+class Animation
+
+instance variables
+--détermine l'environnement
+private env			: Environnement;
+--public static  env			: Environnement := new Environnement("scenario.txt", 1, true);
+--créer un système de synchronisation à barriere
+public static horloge	: TimeStamp := new TimeStamp();
+--détermine le système d'application
+private systemeRTP : SystemeRTP;
+
+operations
+--configuration du système
+public Animation: () ==> Animation
+Animation () ==
+-- CONFIGURATION DU SYSTEME D'ANIMATION
+ (
+    systemeRTP := new SystemeRTP();  
+    env := new Environnement("FlotStimuli.txt", 1, true);
+--lES ACTEURS PILOTES: système SystemeRTP
+   systemeRTP.Pilote.AjouterActeur(systemeRTP.CapteurTemperature1.GetID(), systemeRTP.CapteurTemperature1.GetType());
+	 systemeRTP.Pilote.AjouterActeur(systemeRTP.CapteurPression1.GetID(), systemeRTP.CapteurPression1.GetType());
+	 systemeRTP.Pilote.AjouterActeur(systemeRTP.RegulateurTemperature1.GetID(), systemeRTP.RegulateurTemperature1.GetType());
+	 systemeRTP.Pilote.AjouterActeur(systemeRTP.RegulateurPression1.GetID(), systemeRTP.RegulateurPression1.GetType());
+	  -- Fin phase initialisation des threads
+  --horloge.FinirInitialisation(); 
+    Animation`horloge.FinirInitialisation();
+       
+ );
+
+public Simuler: () ==> ()
+Simuler() ==
+ (-- attendre jusqu'au tarissement du flot de stimuli 
+  env.estFini();
+  -- afficher message fin  simulation 
+  IO`print("\n Simulation terminée  à l'instant: ");
+  IO`print(horloge.GetTime());
+ ); 
+end Animation

@@ -1,0 +1,63 @@
+class Cible
+
+instance variables
+-- variables environnement: température et pression
+private envTemp	 : nat;
+private envPression : nat;
+
+operations
+-- fixe une valeur initiale de temperatute et de  pression
+public Cible: int * int  ==> Cible
+Cible ( temperature0, pression0) ==
+ (envTemp := temperature0;
+  envPression := pression0;
+ );
+--actions de base des régulateurs 
+public SetTemp: nat ==> ()
+SetTemp(t) ==
+  envTemp := t;
+
+public SetPress: nat ==> ()
+SetPress(p) ==
+  envPression:= p;
+
+public IncTemp: () ==> ()
+IncTemp() ==
+  envTemp := envTemp + 1;
+
+public DecTemp: () ==> ()
+DecTemp() ==
+  envTemp := envTemp - 1;
+
+public IncPress: () ==> ()
+IncPress() ==
+  envPression := envPression + 1;
+
+public DecPress: () ==> ()
+DecPress() ==
+  envPression := envPression - 1;
+
+
+--actions de base des capteurs
+
+public ReadTemp: () ==> nat
+ReadTemp() ==
+  return envTemp;
+
+
+public ReadPress: () ==> nat
+ReadPress() ==
+  return envPression;
+
+
+sync
+  mutex(IncTemp);
+  mutex(DecTemp);
+  mutex(SetTemp);
+  mutex(ReadTemp, IncTemp, DecTemp, SetTemp);
+  mutex(IncPress);
+  mutex(DecPress); 
+  mutex(SetPress);
+  mutex(ReadPress, IncPress, DecPress, SetPress);
+
+end Cible

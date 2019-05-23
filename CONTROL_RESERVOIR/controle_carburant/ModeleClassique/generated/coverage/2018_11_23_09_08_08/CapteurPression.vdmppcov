@@ -1,0 +1,16 @@
+class CapteurPression is subclass of Capteur
+--modelise un capteur de pression
+operations
+
+public CapteurPression: nat * Controleur`typeActeur * nat ==> CapteurPression
+	CapteurPression(id, type, val) ==
+		(ID := id;
+		Type := type;
+		Valeur := val;
+		);
+-- Action du Capteur:  "mesurer le taux de pression nominale de l'environnement"
+public Action: () ==> ()
+	Action() ==
+		(Valeur := Application`env.ReadPress();
+		);
+end CapteurPression

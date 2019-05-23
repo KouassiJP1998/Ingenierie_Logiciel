@@ -1,0 +1,74 @@
+class RegulateurPression is subclass of Regulateur, ThreadDeBase
+
+instance variables
+
+fini	: bool := false;
+
+operations
+
+public RegulateurPression: nat * Controleur`typeActeur * Cible * nat1 * bool ==> RegulateurPression
+RegulateurPression (id, type, envir, p, isP) ==
+ (ID := id;
+  Type := type;
+  Corr := <NUL>;
+  Env := envir;
+  periode := p;
+  estPeriodique := isP;
+ );
+
+
+public Finir: () ==> ()
+Finir() ==
+  fini := true;
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+
+
+--simule action du RegulateurPression
+
+protected Action: () ==> ()
+	Action() ==
+		(if (Corr = <INC>)    then Env.IncPress()
+		elseif (Corr = <DEC>) then Env.DecPress()
+		elseif (Corr = <NUL>) then skip;
+	 -- IO`print("\n**********************************************************************************************************");
+    --IO`print("\n   COTE REGULATEUR PRESSION:   Pression(p)  du carburant  l'instant: d=  "); 
+   -- IO`print(Animation`horloge.GetTime());  IO`print("\n");                     		
+   -- IO`print(" est: t= ");
+   -- IO`print(Env.ReadPress()); 
+   -- IO`print(" après la correction =  "); 
+   -- IO`print(Corr);                              
+   -- IO`print("\n**********************************************************************************************************");
+  	Corr := <NUL>;
+	);
+
+ 
+ 
+public SetCorrection: Controleur`correction ==> ()
+	SetCorrection(cor) ==
+		Corr := cor
+pre (cor = <INC>) or (cor = <DEC>) or (cor = <NUL>);
+
+public GetCorrection: () ==> Controleur`correction
+	GetCorrection() ==
+		return Corr;
+ 
+ 
+--thread
+-- (--World`horloge.RegisterThread();
+ 
+--  while true 
+--  do
+--   (if (GetCorr() = <OPEN>)
+--    then (HA`Env.DecHumid();
+--          HA`Env.DecTemp();
+--         );
+--    World`horloge.WaitRelative(5);--World`horloge.stepLength);
+--   )
+-- )
+
+sync	
+  per estFini => fini;
+end RegulateurPression

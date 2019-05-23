@@ -1,0 +1,26 @@
+class DispenseurC is subclass of Dispenseur
+operations
+
+public DispenseurC: nat * Controleur`typeActeur ==> DispenseurC
+	DispenseurC (id, type) ==
+		(ID := id;
+		Type := type;
+		Corr := <NUL>
+		);
+--simule action du DispenseurC
+
+	public Action: () ==> ()
+	Action() ==
+		(if (Corr = <C>)    then Application`env.DispC()
+		);
+
+public SetCorrection: Controleur`typeMissile ==> ()
+	SetCorrection(cor) ==
+		Corr := cor
+pre (cor = <C>) or (cor = <NUL>);
+
+public GetCorrection: () ==> Controleur`typeMissile
+	GetCorrection() ==
+		return Corr;
+
+end DispenseurC

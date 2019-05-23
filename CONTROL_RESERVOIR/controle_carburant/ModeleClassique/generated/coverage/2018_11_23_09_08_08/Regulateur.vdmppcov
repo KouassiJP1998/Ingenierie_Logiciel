@@ -1,0 +1,27 @@
+
+class Regulateur
+--classe pour modeliser les Regulateurs
+instance variables
+
+protected ID	: nat;   -- identité
+protected Type	: Controleur`typeActeur;  --type d'Regulateur
+protected Corr	: Controleur`correction;   -- type de correction
+protected Env	: Environnement;         -- environnement du regulateur
+
+operations
+--donne l'identité d'un Regulateur
+public GetID: () ==> nat
+	GetID() ==
+		return ID;
+		
+--donne le type d'un Regulateur
+public GetType: () ==> Controleur`typeActeur
+	GetType() ==
+		return Type;
+		
+--Fonction du regulateur: de la responsabilité de la sous-classe en fonction du type régulateur appliqué
+public Action: () ==> ()
+	Action() ==
+		is subclass responsibility
+
+end Regulateur

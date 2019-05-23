@@ -1,0 +1,35 @@
+-----------------------------------------------
+class CapteurTemperature is subclass of Capteur
+
+instance variables
+  fini : bool := false;
+operations
+
+public CapteurTemperature: nat * Controleur`typeActeur * int ==> CapteurTemperature
+CapteurTemperature (id, type, val) ==
+ (ID := id;
+  Type := type;
+  Valeur:= val;
+ );
+
+public Action: () ==> ()
+Action () ==
+(
+  Valeur := Application`env.ReadTemp();
+ -- IO`print("\n valeur := Application`env.ReadTemp()"); 
+ --IO`print(Valeur); 
+);
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+
+sync
+  --mutex(Action); -- inutile!
+  per estFini => fini;
+
+thread
+-- period of thread (period, jitter, delay, offset)
+periodic(1000E6,0,0,0) (Action)
+
+end CapteurTemperature

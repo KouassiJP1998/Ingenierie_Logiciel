@@ -1,0 +1,108 @@
+
+class TimeStamp
+
+values
+public pas : nat = 1;
+
+instance variables
+dateActuelle  : nat   := 0;
+tabReveil    : map nat to [nat] := {|->};
+ComptBarriere : nat := 0;
+RegistreThreads : set of ThreadDeBase := {};
+initialise : bool := true;
+
+operations
+
+public TimeStamp : nat ==> TimeStamp
+TimeStamp(compteur) ==
+	ComptBarriere := compteur;
+
+public EnregisterThread : ThreadDeBase ==> ()
+EnregisterThread(t) ==
+ (ComptBarriere :=ComptBarriere + 1;
+  RegistreThreads := RegistreThreads union {t};  
+ );
+ 
+public DesenregistrerThread :() ==> ()
+DesenregistrerThread() ==
+ (ComptBarriere := ComptBarriere - 1;
+
+ );
+ 
+public EstInitialise: () ==> bool
+EstInitialise() ==
+  return initialise;
+ 
+public FinirInitialisation: () ==> ()
+FinirInitialisation() ==
+ (if initialise
+  then (initialise := false;
+        for all t in set RegistreThreads 
+        do
+          start(t);
+       );
+ );
+
+public WaitRelative : nat ==> ()
+WaitRelative(val) ==
+ (WaitAbsolute(dateActuelle + val);  
+ );
+ 
+public WaitAbsolute : nat ==> ()
+WaitAbsolute(val) == (
+  AddTotabReveil(threadid, val);
+  gestionBarriere();
+  Awake();
+);
+
+gestionBarriere : () ==> ()
+gestionBarriere() == 
+(
+	while (card dom tabReveil = ComptBarriere ) do
+  	(
+  		dateActuelle := dateActuelle + pas;
+  		let threadSet : set of nat = {lesThreads| lesThreads in set dom tabReveil 
+  										 & tabReveil( lesThreads) <> nil and tabReveil( lesThreads) <= dateActuelle }
+		in
+			for all t in set threadSet 
+			do
+				 tabReveil := {t} <-: tabReveil;
+	);
+)
+post forall x in set rng tabReveil & x = nil or x >= dateActuelle;
+
+AddTotabReveil : nat * [nat] ==> ()
+AddTotabReveil(tId, val) ==
+   tabReveil := tabReveil ++ { tId |-> val };
+
+public NotifierThread : nat ==> ()
+NotifierThread(tId) ==
+ tabReveil := {tId} <-: tabReveil;
+
+public GetTime : () ==> nat
+GetTime() ==
+  return dateActuelle;
+
+Awake: () ==> ()
+Awake() == skip;
+
+public ThreadDone : () ==> ()
+ThreadDone() == 
+	AddTotabReveil(threadid, nil);
+
+sync
+  per Awake => threadid not in set dom tabReveil;
+
+mutex(EstInitialise);
+mutex(FinirInitialisation);
+  mutex(AddTotabReveil);
+  mutex(NotifierThread);
+  mutex(gestionBarriere);
+  
+  mutex(AddTotabReveil, NotifierThread);
+  mutex(AddTotabReveil, gestionBarriere);
+  mutex(NotifierThread, gestionBarriere);
+  
+  mutex(AddTotabReveil, NotifierThread, gestionBarriere);
+
+end TimeStamp

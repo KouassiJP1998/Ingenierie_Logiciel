@@ -1,0 +1,36 @@
+class ThreadDeBase
+	-- creer thread generique
+instance variables
+--p�riode du thread
+protected periode : nat1 := 1;
+protected estPeriodique : bool := true;
+
+
+operations
+
+protected ThreadDeBase : () ==> ThreadDeBase
+ThreadDeBase() ==
+ (Animation`horloge.EnregisterThread(self);
+  if(not Animation`horloge.EstInitialise())
+  then start(self);  
+ );
+
+protected Action : () ==> ()
+Action() ==
+  is subclass responsibility
+
+thread
+ (if estPeriodique
+  then (while true
+        do 
+         (Action();
+         Animation`horloge.WaitRelative(periode);
+         )
+       )
+  else (Action();
+       Animation`horloge.WaitRelative(0);
+       Animation`horloge.DesenregistrerThread();
+       )
+ );
+
+end ThreadDeBase

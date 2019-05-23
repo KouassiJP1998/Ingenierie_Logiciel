@@ -1,0 +1,44 @@
+
+system SystemeRTP
+
+instance variables
+
+  ---1 cpu controleur 
+              cpu1 : CPU := new CPU(<FCFS>, 1E6);
+  ---2 cpu capteurs: un par chaque capteur
+              cpu2 : CPU := new CPU(<FCFS>, 1E6);
+              cpu5 : CPU := new CPU(<FCFS>, 1E6);
+  ---2 cpu régulateurs: un pour chaque  régulateur
+              cpu3 : CPU := new CPU(<FCFS>, 1E6);
+              cpu4 : CPU := new CPU(<FCFS>, 1E6);
+
+  -- bus connexion controleur avec les capteurs et les régulateurs
+  bus1 : BUS := new BUS(<FCFS>, 1E3, {cpu1, cpu2, cpu3, cpu4, cpu5 });
+
+  public static Pilote : Controleur:= new Controleur (8, 70);
+  public static CapteurTemperature1: CapteurTemperature := new CapteurTemperature(1, <CAPTEUR_TEMPERATURE>, 20);
+  public static CapteurPression1 : CapteurPression := new CapteurPression(2, <CAPTEUR_PRESSION>, 75);
+  public static RegulateurTemperature1 :  RegulateurTemperature := new RegulateurTemperature(3, <REGULATEUR_TEMPERATURE>);
+  public static RegulateurPression1 : RegulateurPression := new RegulateurPression(4, <REGULATEUR_PRESSION>);
+
+--
+-- Operations definition section
+operations
+
+public SystemeRTP: () ==> SystemeRTP
+SystemeRTP() ==
+ -- déploiement des threads sur la plate forme cpu comme suit:
+          (
+-- on déploie le Pilote sur cpu1
+          cpu1.deploy(Pilote );
+-- on déploie CapteurTemperature1 sur cpu2        
+          cpu2.deploy(CapteurTemperature1);
+-- on déploie RegulateurPression1 sur cpu5            
+          cpu5.deploy(CapteurPression1);
+-- on déploie RegulateurTemperature1 sur cpu3       
+          cpu3.deploy(RegulateurTemperature1);
+-- on déploie RegulateurPression1 sur cpu4           
+          cpu4.deploy(RegulateurPression1 ); 
+           );
+
+end SystemeRTP

@@ -1,0 +1,159 @@
+class Controleur is subclass of ThreadDeBase
+-- classe pour modeliser le "controleur": pilote qui réalise l'asservissement
+
+types   
+--type des acteurs
+public typeActeur 	= <CAPTEUR_DISTANCE> | <CAPTEUR_LATITUDE>  | <CAPTEUR_LONGITUDE> | <DISPENSEUR_A>| <DISPENSEUR_B> | <DISPENSEUR_C> | <NUL> ;
+
+public typeMissile = <A> | <B> | <C> | <NUL>;
+
+
+instance variables
+--indicateur
+private indicateur		: bool := true;
+private Fini : bool := false;
+
+-- valeur cible de la distance
+private distanceCible	: nat;
+-- valeur mesurée de la distance 
+private Distance		: nat := 0;
+
+--valeur cible de la latitude
+private latitudeCible	: nat;
+--valeur mesurée de la latitude
+private Latitude		: nat := 0;
+
+--valeur cible de la longitude
+private longitudeCible	: nat;
+--valeur mesurée de la latitude
+private Longitude		: nat := 0;
+
+--valeur distance délivrée par le capteur de distance
+private envDistance	: nat := 0;
+--valeur latitude délivrée par le capteur de latitude
+private envLatitude	: nat := 0;
+--valeur longitude délivrée par le capteur de longitude
+private envLongitude	: nat := 0;
+
+--numérotation des acteurs
+private ListeActeur	: map nat to typeActeur := { |-> };
+
+
+operations
+-- le controleur assure l'asservissement numerique en distance, latitude et longitude
+-- permet de fixer les consignes distanceCible, latitudeCible et longitudeCible qui sont passées en paramètres: au moment de l'instatiation à partir de la classe centrale SYSTEMERTP
+public Controleur: nat * nat * nat * nat1 * bool ==> Controleur
+	Controleur(targetDistance,targetLatitude, targetLongitude, T, p) ==
+		(  distanceCible :=    targetDistance;
+		   latitudeCible := targetLatitude;
+		   longitudeCible := targetLongitude;
+		   periode := T;
+		   estPeriodique := p;
+		);
+
+
+--mise à jour des valeurs des variables Distance, Latitude et Longitude en fonction  des mesures données par les capteurs
+public majValeurs: () ==> ()
+	majValeurs() ==
+		(for all r in set rng ListeActeur do
+			(if (r = <CAPTEUR_DISTANCE>)
+			then Distance := SystemeAM`CapteurDistance1.ReadValeur();
+			if (r = <CAPTEUR_LATITUDE>)
+			then Latitude := SystemeAM`CapteurLatitude1.ReadValeur();
+			if (r = <CAPTEUR_LONGITUDE>)
+			then Longitude := SystemeAM`CapteurLongitude1.ReadValeur();				
+			);
+		);
+
+--retourne la distance, la latitude et la longitude mesurés par les capteurs
+public GetDistance: () ==> nat
+	GetDistance() ==
+		return Distance;
+
+public GetLatitude: () ==> nat
+	GetLatitude() ==
+		return Latitude;
+		
+public GetLongitude: () ==> nat
+	GetLongitude() ==
+		return Longitude;
+
+
+
+private Algorithme: () ==> ()
+	Algorithme() ==
+	
+ if (Distance > distanceCible)then(
+  -- Dans la zone de A
+  		--dcl dateActuelle : nat := Animation`horloge.GetTime();
+  			if(Longitude > -180 and Longitude < -120 and Latitude > -90 and Latitude < -30)then(
+        SystemeAM`DispenseurA1.SetCorrection(<A>);
+        SystemeAM`DispenseurA2.SetCorrection(<A>);
+        indicateur := true;
+       );
+       
+       if(Longitude > -120 and Longitude < 60 and Latitude > -30 and Latitude < 30)then(
+			 SystemeAM`DispenseurB1.SetCorrection(<B>);
+       SystemeAM`DispenseurB2.SetCorrection(<B>);
+       indicateur := true;
+       );
+       
+       if(Longitude > -90 and Longitude < 180 and Latitude > 30 and Latitude < 60)then(
+			 SystemeAM`DispenseurC1.SetCorrection(<C>);
+       SystemeAM`DispenseurC2.SetCorrection(<C>);
+       indicateur := true;
+       );
+ );
+ 
+public AjouterActeur: nat * typeActeur ==> ()
+	AjouterActeur(id, type) ==
+		(ListeActeur := ListeActeur ++ {id |-> type};
+		)
+pre id not in set dom ListeActeur
+post card(dom ListeActeur) = card(dom ListeActeur~) + 1;
+
+private printStr: seq of char ==> ()
+printStr(str) ==
+ (indicateur := false;
+  IO`print(str);
+ );
+ 
+public estFini: () ==> ()
+estFini() == 
+  skip;
+
+public Finir: () ==> ()
+Finir() == 
+  Fini := true;
+--action du controleur: appelée par le thread
+public Action: () ==> ()
+Action() ==
+ (
+ --actionner CAPTEUR DE DISTANCE
+ SystemeAM`CapteurDistance1.Action();
+ --actionner CAPTEUR  DE LATITUDE
+ SystemeAM`CapteurLatitude1.Action();
+ --actionner CAPTEUR  DE LONGITUDE
+ SystemeAM`CapteurLongitude1.Action();
+ --mise à jour des mesures
+ majValeurs();
+ --Appliquer l'algorithme de correction 
+ Algorithme();
+  
+ --actionner DISPENSEURA
+ SystemeAM`DispenseurA1.Action();
+ SystemeAM`DispenseurA2.Action();
+ --actionner  DISPENSEURB
+ SystemeAM`DispenseurB1.Action();
+ SystemeAM`DispenseurB2.Action();
+ --actionner  DISPENSEURC
+ SystemeAM`DispenseurC1.Action();
+ SystemeAM`DispenseurC2.Action();
+ );
+
+sync
+
+per estFini => Fini;
+per printStr => indicateur;
+
+end Controleur

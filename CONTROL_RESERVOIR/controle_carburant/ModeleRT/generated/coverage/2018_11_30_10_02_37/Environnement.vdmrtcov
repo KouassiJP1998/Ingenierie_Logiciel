@@ -1,0 +1,124 @@
+-----------------------------------------------
+
+class Environnement
+
+instance variables
+  private io       : IO := new IO();
+  private stimuli  : seq of stimulus := [];
+ -- private outlines : seq of outline := [];
+  private duréeSimulation  : nat;
+  private fini : bool := false;
+  --temperature et pression dans environnement(réservoir)
+  private envTemp  : int := 8;
+  private envPression : int := 71;
+  
+types
+-- stimulus: triplet(date,temperature, pression)
+public stimulus	= nat * nat * nat;
+
+
+operations
+ 
+public Environnement: seq of char ==> Environnement
+Environnement(seqStimuli) ==
+
+ (let mk_ (-,mk_(t,input)) = io.freadval[nat * seq of stimulus](seqStimuli) 
+  in
+   (stimuli := input;
+    duréeSimulation := t;
+    envTemp := 20;
+    envPression := 75;
+   );
+ )
+pre seqStimuli <> []
+post stimuli <> [] and duréeSimulation > 0;
+
+private produireStimuli: () ==> ()
+produireStimuli() ==
+ (if len stimuli > 0
+  then (dcl dateActuelle : nat := time;
+	let mk_ (temperature, pression, date) = hd stimuli 
+        in
+         (if date <= dateActuelle
+          then (SetTemp(temperature);
+                SetPression(pression);                 
+           IO`print("\n**********************************************************************************************************");
+           IO`print("\n      Temperature(t) et pression(p) du carburant détectées par les capteurs à l'instant:  "); 
+           IO`print(date); 
+           IO`print("\n");                     		
+           IO`print("                     t= ");
+           IO`print(temperature); 
+           IO`print("      p=");  IO`print(pression) ;                               
+           IO`print("%\n**********************************************************************************************************");
+           stimuli := tl stimuli;
+                return
+               );
+         );
+       );
+  if (time >= duréeSimulation)
+  then (
+        fini := true;
+        return;
+       );
+ );	
+
+public SetTemp: nat ==> ()
+SetTemp(t) ==
+ envTemp := t;
+
+public SetPression: nat ==> ()
+SetPression(p) ==
+ envPression := p;
+
+public ReadTemp: () ==> int
+ReadTemp() ==
+  return envTemp;
+
+public IncTemp: () ==> ()
+IncTemp() ==
+ (envTemp := envTemp + 1;
+ SystemeRTP`RegulateurTemperature1.SetCorrection(<NUL>);
+ );
+
+public DecTemp: () ==> ()
+DecTemp() ==
+ (envTemp := envTemp - 1;
+  SystemeRTP`RegulateurTemperature1.SetCorrection(<NUL>)
+ );
+
+public ReadPression: () ==> nat
+ReadPression() ==
+  return envPression;
+
+public IncPression: () ==> ()
+IncPression() ==
+ (envPression := envPression + 1;
+  SystemeRTP`RegulateurPression1.SetCorrection(<NUL>)
+ );
+
+public DecPression: () ==> ()
+DecPression() ==
+ (envPression := envPression - 1;
+  SystemeRTP`RegulateurPression1.SetCorrection(<NUL>)
+ );
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+
+sync
+
+  mutex(IncTemp);
+  mutex(DecTemp);
+  mutex(SetTemp);
+  mutex(ReadTemp, IncTemp, DecTemp, SetTemp);
+  mutex(IncPression);
+  mutex(DecPression);
+  mutex(SetPression);
+  mutex(ReadPression, IncPression, DecPression, SetPression);
+  per estFini => fini;
+
+thread
+-- periode du thread (period, jitter, delay, offset)
+periodic(1000E6,0,0,0) (produireStimuli)
+end Environnement

@@ -1,0 +1,145 @@
+class Environnement is subclass of ThreadDeBase
+
+types
+-- chaque donn�e d'entr�e: Distance, Latitude, Longitude, Date
+public data	= int * int * int * nat
+
+instance variables
+--les variables qui indique la temperature et la pression dans le r�servoir
+private envDistance		: int := 0;
+private envLatitude	: int := 0;
+private envLongitude	: int := 0;
+--private MonSysteme :SystemeAM := new SystemeAM ()  ;
+
+--les entr�es/sorties
+private io       : IO := new IO();
+private datas	 : seq of data := [];
+
+--dur�e de simulation
+private DureeSimulation	 : nat;
+private fini : bool := false   -- indicateur de fin de flux de donn�es(stimuli)   environnement -> systeme de regulation
+
+
+
+operations
+--permet de saisir la s�quence de  donn�es renvoy�es par les capteurs (simulateur)  et la dur�e totale de la simulation
+public Environnement: seq of char * nat1 * bool ==> Environnement
+  Environnement(fichierData, p, estP) ==
+   (periode := p;
+  	estPeriodique := estP;
+  	let mk_(-,mk_(duree, input)) = io.freadval[nat * seq of data](fichierData) 
+  	in
+   	(	datas := input;
+    	DureeSimulation:= duree;
+   	);
+   	   
+   
+         IO`print("\n************************************************************************************************************************");
+         IO`print("\n       Distance(t) Latitude(p) et Longitude(r) du carburant a l'instant t=0  ");  IO`print("\n");                     		
+         IO`print("          t= ");IO`print(SystemeAM`leContexte.ReadDistance()); IO`print("      p=");  IO`print(SystemeAM`leContexte.ReadLatitude()) ;IO`print(SystemeAM`leContexte.ReadLongitude()) ;                                
+         IO`print("\n************************************************************************************************************************");
+  
+ );
+   
+
+--Op�ration sur la Distance environnement: envDistance
+public ReadDistance: () ==> int
+	ReadDistance() ==
+		return envDistance;
+		
+public SetDistance: int ==> ()
+	SetDistance(t) ==
+	envDistance := t;
+
+
+--Op�ration sur la latitude environnement : envLatitude
+public ReadLatitude: () ==> int
+	ReadLatitude() ==
+		return envLatitude;
+
+public SetLatitude: int ==> ()    --pour simuler l'acquisition de la pression de environnement: envPress
+	SetLatitude(h) ==
+	envLatitude := h;
+
+
+--Op�ration sur la longitude environnement : envLongitude
+public ReadLongitude: () ==> int
+	ReadLongitude() ==
+		return envLongitude;
+
+public SetLongitude: int ==> ()    --pour simuler l'acquisition de la pression de environnement: envPress
+	SetLongitude(h) ==
+	envLongitude := h;
+	
+	--Operation sur les dispenseurs 
+	public DispA: () ==> ()
+		DispA() == 
+		IO`print("\n Missile de type A envoyé ");
+	
+		public DispB: () ==> ()
+		DispB() == 
+		IO`print("\n Missile de type B envoyé ");
+		
+		public DispC: () ==> ()
+		DispC() == 
+		IO`print("\n Missile de type C envoyé ");
+		
+		
+		
+		
+--SIMULATION DES CHANGEMENTS 
+--données d'entrées du système de régulation
+--lecture à partir du fichier .TXT  de la séquence des entrées: "inlines" 
+private stimuli: () ==> ()
+stimuli() ==
+ (if len datas > 0
+  then (dcl dateActuelle : nat :=Animation`horloge.GetTime();
+        let mk_(distance, latitude, longitude, date) = hd datas
+         in
+           (if date =  dateActuelle 
+           then (	SystemeAM`leContexte.SetDistance(distance);
+                	SystemeAM`leContexte.SetLatitude(latitude);  
+                	SystemeAM`leContexte.SetLongitude(longitude);  
+           IO`print("\n**********************************************************************************************************");
+           IO`print("\n      Distance(t) et Latitude(p) et Longitude (r) détectées par les capteurs à l'instant:  "); 
+           IO`print(dateActuelle); 
+           IO`print("\n");                     		
+           IO`print("                     t= ");
+           IO`print(distance); 
+           IO`print("      p=");  IO`print(latitude) ;   
+           IO`print("                     r= ");
+           IO`print(longitude);                             
+           IO`print("\n**********************************************************************************************************");
+           datas := tl datas;
+           return
+           );
+        );
+  )
+  else (fini :=false;
+        return
+       );
+ );	
+ 
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+  
+public Finir: () ==> ()
+Finir
+() ==
+  fini:= true;
+
+protected Action: () ==> ()
+Action() ==
+ (if Animation`horloge.GetTime() < DureeSimulation
+  then stimuli()   
+  else fini := true;     
+ );
+
+
+sync
+
+  per estFini => fini;
+
+end Environnement

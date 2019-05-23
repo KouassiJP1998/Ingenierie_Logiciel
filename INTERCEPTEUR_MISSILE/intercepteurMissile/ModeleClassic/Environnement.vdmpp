@@ -1,0 +1,147 @@
+class Environnement
+types
+-- chaque donn�e d'entr�e: Distance, Latitude, Longitude, Date
+public data	= int * int * int * nat
+
+instance variables
+--les variables qui indique la temperature et la pression dans le r�servoir
+private envDistance		: int ;
+private envLatitude	: int;
+private envLongitude	: int;
+private MonSysteme       : SystemeAM;
+--private MonSysteme :SystemeAM := new SystemeAM ()  ;
+
+--les entr�es/sorties
+private io       : IO := new IO();
+private datas	 : seq of data := [];
+
+--duree de simulation
+private DureeSimulation	 : nat;
+private fini : bool := false   -- indicateur de fin de flux de donn�es(stimuli)   environnement -> systeme de regulation
+
+
+
+operations
+--permet de saisir la s�quence de  donn�es renvoy�es par les capteurs (simulateur)  et la dur�e totale de la simulation
+public Environnement: seq of char ==> Environnement
+  Environnement(fichierData) ==
+   (let mk_ (-,mk_(t,input)) = io.freadval[nat * seq of data](fichierData) -- lecture des donn�es  � partir d'un fichier "fichierData" 
+    in
+     (datas := input;            -- chargement de la s�quence des donn�es lues dans la liste "Datas"
+      DureeSimulation := t;      -- dur�e de simulation pr�vue
+     );
+         
+   MonSysteme := new SystemeAM();
+   
+   -- Valeurs à l'initialisation du cas de test --
+   envDistance := 22;
+   envLatitude:= 75;
+   envLongitude := 75;
+   
+          IO`print("\n****************************************************************************************************");
+          IO`print("\n      Valeurs initiales detectees par les capteurs a l'instant t=0  ");  IO`print("\n");                     		
+          IO`print("                     distance = ");IO`print(envDistance); 
+          IO`print("      latitude =");  IO`print(envLatitude); 
+          IO`print("      longitude =");  IO`print(envLongitude);                               
+          IO`print("\n****************************************************************************************************");
+   
+   
+   );
+   
+
+--Op�ration sur la Distance environnement: envDistance
+public ReadDistance: () ==> int
+	ReadDistance() ==
+		return envDistance;
+		
+public SetDistance: int ==> ()
+	SetDistance(t) ==
+	envDistance := t;
+
+
+--Op�ration sur la latitude environnement : envLatitude
+public ReadLatitude: () ==> int
+	ReadLatitude() ==
+		return envLatitude;
+
+public SetLatitude: int ==> ()    --pour simuler l'acquisition de la pression de environnement: envPress
+	SetLatitude(h) ==
+	envLatitude := h;
+
+
+--Op�ration sur la longitude environnement : envLongitude
+public ReadLongitude: () ==> int
+	ReadLongitude() ==
+		return envLongitude;
+
+public SetLongitude: int ==> ()    --pour simuler l'acquisition de la pression de environnement: envPress
+	SetLongitude(h) ==
+	envLongitude := h;
+	
+	--Operation sur les dispenseurs 
+	public DispA: () ==> ()
+		DispA() == 
+		IO`print("\n Missile de type A envoyé ");
+	
+		public DispB: () ==> ()
+		DispB() == 
+		IO`print("\n Missile de type B envoyé ");
+		
+		public DispC: () ==> ()
+		DispC() == 
+		IO`print("\n Missile de type C envoyé ");
+		
+		
+		
+			
+
+
+--stimuli :   environnement ---> syst�me de dispenseur (pilote)
+private stimuli: () ==> ()
+stimuli() ==
+ (if len datas > 0
+  then (dcl dateActuelle : nat := Application`horloge.GetTime();
+  let mk_ (distance, latitude, longitude, date) = hd datas 
+  in
+   (if date <= dateActuelle
+    then (SetDistance(distance);
+          SetLatitude(latitude); 
+          SetLongitude(latitude);     
+          IO`print("\n****************************************************************************************************");
+          IO`print("\n      Nouvelles valeurs detectees par les capteurs a l'instant:  "); IO`print(date);  IO`print("\n");                     		
+          IO`print("                     distance = ");IO`print(distance);
+          IO`print("      latitude =");  IO`print(latitude) ;  
+          IO`print("      longitude =");  IO`print(longitude) ;                                
+          IO`print("%\n*****************************************************************************************************");
+          datas := tl datas;
+          return
+         );
+         );
+  )
+  else (fini := true;
+        return
+       );
+ );	
+
+
+public estFini : () ==> bool
+estFini () == 
+  return datas = [] and fini;
+
+--   
+--lancer: op�ration qui d�crit la simulation du syst�me de r�gulation   
+public produireStimuli: () ==> ()
+produireStimuli () == 
+ (--while not estFini() do
+    while Application`horloge.GetTime() < DureeSimulation  do
+    (
+    --produire le stimuli: action des capteurs
+    stimuli();
+     -- actionner le pilote
+     SystemeAM`Pilote.Action();
+     --ne pas oublier l'horloge
+     Application`horloge.StepTime();
+    );
+ );
+
+end Environnement

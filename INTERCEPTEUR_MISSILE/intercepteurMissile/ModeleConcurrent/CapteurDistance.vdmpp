@@ -1,0 +1,36 @@
+class CapteurDistance is subclass of Capteur, ThreadDeBase
+
+instance variables
+fini : bool := false
+--modelise un capteur de distance
+operations
+
+public CapteurDistance: nat * Controleur`typeActeur * nat * Contexte * nat1 * bool ==> CapteurDistance
+	CapteurDistance(id, type, val, envir, p, isP) ==
+		(ID := id;
+		Type := type;
+		Valeur := val;
+		Env := envir;
+		periode := p;
+		estPeriodique := isP;
+		);
+		
+public Finir: () ==> ()
+	Finir() ==
+  fini := true;
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+
+-- action du CapteurDistance:  "mesurer la distance de l'environnement"
+public Action: () ==> ()
+	Action() ==
+		(Valeur := Application`env.ReadDistance();
+		)
+		
+sync	
+  per estFini => fini;
+		
+
+end CapteurDistance

@@ -1,0 +1,49 @@
+class Animation
+
+instance variables
+--d�termine l'environnement
+private env			: Environnement;
+--public static  env			: Environnement := new Environnement("scenario.txt", 1, true);
+--cr�er un syst�me de synchronisation � barriere
+public static horloge	: TimeStamp := new TimeStamp();
+--d�termine le syst�me d'application
+private systemeAM : SystemeAM;
+
+operations
+--configuration du syst�me
+public Animation: () ==> Animation
+Animation () ==
+-- instance SYSTEME D'ANIMATION
+ (
+    systemeAM := new SystemeAM();  
+    env := new Environnement("FlotStimuli.txt", 1, true);
+--insance des CAPTEURS du syst�me SystemeTH
+   systemeAM.Pilote.AjouterActeur(systemeAM.CapteurDistance1.GetID(), systemeAM.CapteurDistance1.GetType());
+	 systemeAM.Pilote.AjouterActeur(systemeAM.CapteurLatitude1.GetID(), systemeAM.CapteurLatitude1.GetType());
+	 systemeAM.Pilote.AjouterActeur(systemeAM.CapteurLongitude1.GetID(), systemeAM.CapteurLongitude1.GetType());
+	 systemeAM.Pilote.AjouterActeur(systemeAM.DispenseurA1.GetID(), systemeAM.DispenseurA1.GetType());
+	 systemeAM.Pilote.AjouterActeur(systemeAM.DispenseurA2.GetID(), systemeAM.DispenseurA2.GetType());
+	 systemeAM.Pilote.AjouterActeur(systemeAM.DispenseurB1.GetID(), systemeAM.DispenseurB1.GetType());
+	 systemeAM.Pilote.AjouterActeur(systemeAM.DispenseurB2.GetID(), systemeAM.DispenseurB2.GetType());
+	 systemeAM.Pilote.AjouterActeur(systemeAM.DispenseurC1.GetID(), systemeAM.DispenseurC1.GetType());
+	 systemeAM.Pilote.AjouterActeur(systemeAM.DispenseurC2.GetID(), systemeAM.DispenseurC2.GetType());
+	 
+	  -- Fin phase initialisation des threads
+  --horloge.FinirInitialisation(); 
+    Animation`horloge.FinirInitialisation();
+       
+ );
+
+
+
+public Simuler: () ==> ()
+Simuler() ==
+ (-- attendre jusqu'au tarissement du flot de stimuli 
+  env.estFini();
+  -- afficher message fin  simulation 
+  IO`print("\n Simulation terminee  a l'instant: ");
+  IO`print(horloge.GetTime());
+ );
+ 
+ 
+end Animation

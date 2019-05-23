@@ -1,0 +1,33 @@
+
+class Application
+
+instance variables
+public static env : [Environnement] := nil;
+--env: := new Environnement("flotStimuli.txt");
+
+operations 
+public Application: () ==> Application
+Application() ==
+ (env := new Environnement("flotSimuli.txt");
+  SystemeRTP`Pilote.AjouterActeur(SystemeRTP`CapteurTemperature1.GetID(),SystemeRTP`CapteurTemperature1.GetType());
+  SystemeRTP`Pilote.AjouterActeur(SystemeRTP`CapteurPression1.GetID(),SystemeRTP`CapteurPression1.GetType());
+  SystemeRTP`Pilote.AjouterActeur(SystemeRTP`RegulateurTemperature1.GetID(),SystemeRTP`RegulateurTemperature1.GetType());
+  SystemeRTP`Pilote.AjouterActeur(SystemeRTP`RegulateurPression1.GetID(),SystemeRTP`RegulateurPression1.GetType());
+
+  start(SystemeRTP`CapteurTemperature1);
+  start(SystemeRTP`CapteurPression1);
+  start(SystemeRTP`RegulateurTemperature1);
+  start(SystemeRTP`RegulateurPression1);
+  start(SystemeRTP`Pilote);
+ );
+
+public Simuler: () ==> ()
+Simuler() ==
+ (-- lancer (start thread)  environment 
+  start(env);
+  --attendre que l'environnement ait fini de produire des stimuli 
+  env.estFini();
+  -- désactiver le pilote (controleur)
+ SystemeRTP`Pilote.Finir();
+ );
+end Application

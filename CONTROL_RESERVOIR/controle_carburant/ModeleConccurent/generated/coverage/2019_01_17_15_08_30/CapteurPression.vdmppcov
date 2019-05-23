@@ -1,0 +1,44 @@
+class CapteurPression is subclass of Capteur, ThreadDeBase
+
+instance variables
+fini	: bool := false;
+
+operations
+
+public CapteurPression: nat * Controleur`typeActeur * nat * Cible * nat1 * bool ==> CapteurPression
+CapteurPression(id, type, val, envir, p, isP) ==
+ (ID := id;
+  Type := type;
+  Valeur := val;
+  Env := envir;
+  periode := p;
+  estPeriodique := isP;
+ );
+
+public Finir: () ==> ()
+Finir() ==
+  fini := true;
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+
+-- Action du Capteur:  "mesurer le taux de pression nominale de l'environnement"
+protected  Action: () ==> ()
+	Action() ==
+	(
+		Valeur := Env.ReadPress();
+ -- IO`print("\n**********************************************************************************************************");
+ --IO`print("\n  COTE CAPTEUR PRESSION:    Pression(p)  du carburant  l'instant: d=  "); 
+ --IO`print(Animation`horloge.GetTime());  IO`print("\n");                     		
+ --IO`print(" est: t= ");
+ --IO`print(Valeur);                               
+ --IO`print("\n**********************************************************************************************************");
+  
+	)
+		
+sync	
+  per estFini => fini;
+
+
+end CapteurPression

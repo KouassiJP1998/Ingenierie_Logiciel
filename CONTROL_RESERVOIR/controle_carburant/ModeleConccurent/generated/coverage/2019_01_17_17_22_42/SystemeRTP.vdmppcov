@@ -1,0 +1,15 @@
+
+
+class SystemeRTP
+-- classe qui configure le système: Pilote + 2 Regulateurs + 2 capteurs
+instance variables
+public static laCible		: Cible := new Cible(10,71);
+--crée des instances "public static" pour permettre l'accès à partir de toutes les classes du modèle  
+public static  Pilote	: Controleur := new Controleur(8, 70,3,true);  -- un seul système de pilotage qui regule la temperature (autour de 8°) et la pression (autour de 70% de la pression nominale)
+public static CapteurTemperature1	: CapteurTemperature := new CapteurTemperature(1, <CAPTEUR_TEMPERATURE>, 10, laCible, 3, true);  -- un seul capteur de température
+public static CapteurPression1	: CapteurPression := new CapteurPression(2, <CAPTEUR_PRESSION>, 71, laCible, 3, true);  -- un seul capteur de pression
+public static RegulateurTemperature1	: RegulateurTemperature := new RegulateurTemperature(3, <REGULATEUR_TEMPERATURE>, laCible, 5, true); -- un seul regulateur de temperature
+public static RegulateurPression1	: RegulateurPression := new RegulateurPression(4, <REGULATEUR_PRESSION>, laCible , 5, true ); -- un seul régulateur de pression
+
+end SystemeRTP
+

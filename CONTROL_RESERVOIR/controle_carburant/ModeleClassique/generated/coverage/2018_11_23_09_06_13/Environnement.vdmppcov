@@ -1,0 +1,135 @@
+
+
+class Environnement
+-- l'environnement: reservoir + carburant
+--nous sommes dans un cas typique où c'est l'environnement qui dirige le flux de contrôle
+types
+-- chaque donnée d'entrée: Température, Pression, Date
+public data	= int * int * nat
+
+instance variables
+--les variables qui indique la temperature et la pression dans le réservoir
+private envTemp		: int ;
+private envPress	: int;
+private MonSysteme       : SystemeRTP;
+--private MonSysteme :SystemeRTP := new SystemeRTP ()  ;
+
+--les entrées/sorties
+private io       : IO := new IO();
+private datas	 : seq of data := [];
+
+--durée de simulation
+private DuréeSimulation	 : nat;
+private fini : bool := false   -- indicateur de fin de flux de données(stimuli)   environnement -> systeme de regulation
+
+
+
+operations
+--permet de saisir la séquence de  données renvoyées par les capteurs (simulateur)  et la durée totale de la simulation
+public Environnement: seq of char ==> Environnement
+  Environnement(fichierData) ==
+   (let mk_ (-,mk_(t,input)) = io.freadval[nat * seq of data](fichierData) -- lecture des données  à partir d'un fichier "fichierData" 
+    in
+     (datas := input;            -- chargement de la séquence des données lues dans la liste "Datas"
+      DuréeSimulation := t;      -- durée de simulation prévue
+     );
+         
+   MonSysteme := new SystemeRTP();
+   
+   envTemp := 10;
+   envPress:= 75;
+          IO`print("\n****************************************************************************************************");
+          IO`print("\n      Valeurs initiales detectees par les capteurs a l'instant t=0  ");  IO`print("\n");                     		
+          IO`print("                     t= ");IO`print(envTemp); IO`print("      p=");  IO`print(envPress) ;                               
+          IO`print("\n****************************************************************************************************");
+   
+   
+   );
+   
+
+--Opération sur la temperature environnement: envTemp
+
+public ReadTemp: () ==> int
+	ReadTemp() ==
+		return envTemp;
+
+public IncTemp: () ==> ()
+	IncTemp() ==
+		envTemp := envTemp + 1;
+
+
+public DecTemp: () ==> ()
+	DecTemp() ==
+		envTemp := envTemp - 1;
+
+public SetTemp: int ==> ()  --pour simuler l'acquisition de la temperature de environnement: envTemp
+	SetTemp(t) ==
+		envTemp := t;
+
+
+--Opération sur la pression environnement : envPress
+
+public ReadPress: () ==> int
+	ReadPress() ==
+		return envPress;
+
+public IncPress: () ==> ()
+	IncPress() ==
+		envPress := envPress + 1;
+
+public DecPress: () ==> ()
+	DecPress() ==
+		envPress := envPress - 1;
+
+public SetPress: int ==> ()    --pour simuler l'acquisition de la pression de environnement: envPress
+	SetPress(h) ==
+	envPress := h;
+
+
+
+--stimuli :   environnement ---> système de régulation (pilote)
+private stimuli: () ==> ()
+stimuli() ==
+ (if len datas > 0
+  then (dcl dateActuelle : nat := Application`horloge.GetTime();
+  let mk_ (temperature, pression, date) = hd datas 
+  in
+   (if date <= dateActuelle
+    then (SetTemp(temperature);
+          SetPress(pression);    
+          IO`print("\n****************************************************************************************************");
+          IO`print("\n      Nouvelles valeurs detectees par les capteurs a l'instant:  "); IO`print(date);  IO`print("\n");                     		
+          IO`print("                     t= ");IO`print(temperature); IO`print("      p=");  IO`print(pression) ;                               
+          IO`print("%\n*****************************************************************************************************");
+          datas := tl datas;
+          return
+         );
+         );
+  )
+  else (fini := true;
+        return
+       );
+ );	
+
+
+public estFini : () ==> bool
+estFini () == 
+  return datas = [] and fini;
+
+--   
+--lancer: opération qui décrit la simulation du système de régulation   
+public produireStimuli: () ==> ()
+produireStimuli () == 
+ (--while not estFini() do
+    while Application`horloge.GetTime() < DuréeSimulation  do
+    (
+    --produire le stimuli: action des capteurs
+    stimuli();
+     -- actionner le pilote
+     SystemeRTP`Pilote.Action();
+     --ne pas oublier l'horloge
+     Application`horloge.StepTime();
+    );
+ );
+
+end Environnement

@@ -1,0 +1,17 @@
+class CapteurLongitude is subclass of Capteur
+--modelise un capteur de longitude
+operations
+
+public CapteurLongitude: nat * Controleur`typeActeur * nat ==> CapteurLongitude
+	CapteurLongitude(id, type, val) ==
+		(ID := id;
+		Type := type;
+		Valeur := val;
+		);
+-- action du CapteurLatitude:  "mesurer la latitude de l'environnement"
+public Action: () ==> ()
+	Action() ==
+		(Valeur := Application`env.ReadLongitude();
+		);
+
+end CapteurLongitude

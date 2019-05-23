@@ -1,0 +1,53 @@
+-----------------------------------------------
+
+class RegulateurPression is subclass of Actionneur
+instance variables
+
+  fini : bool := false;
+operations
+
+public RegulateurPression: nat *Controleur`typeActeur ==> RegulateurPression
+RegulateurPression (id, type) ==
+ (ID := id;
+  Type := type;
+  Corr := <NUL>;
+ );
+
+public Action: () ==> ()
+Action() ==
+ (dcl pressionCorr: Controleur`correction := GetCorrection();
+  if (pressionCorr = <INC>)
+  then Application`env.IncPression()
+  elseif (pressionCorr  = <DEC>)
+  then Application`env.DecPression()
+  elseif(pressionCorr = <NUL>)
+  then skip;
+  pressionCorr := <NUL>;  
+ );
+
+--action asynchrone 
+async public SetCorrection: Controleur`correction ==> ()
+SetCorrection(cor) ==
+  Corr := cor
+pre (cor = <DEC>) or (cor = <NUL> ) or (cor = <INC> );
+
+public GetCorrection: () ==> Controleur`correction
+GetCorrection() ==
+  return Corr
+post (Corr = <DEC>) or (Corr = <NUL> ) or (Corr = <INC> );
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+
+sync
+  --mutex(Action); 
+  per estFini=> fini;
+  mutex(SetCorrection, GetCorrection);
+
+thread
+
+-- periode du  thread (periode, jitter, delay, offset)
+periodic(1000E6,0,0,0) (Action)
+
+end RegulateurPression

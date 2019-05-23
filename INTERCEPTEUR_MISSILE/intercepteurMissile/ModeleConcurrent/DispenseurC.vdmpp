@@ -1,0 +1,44 @@
+class DispenseurC is subclass of Dispenseur, ThreadDeBase
+
+instance variables
+fini : bool := false;
+
+operations
+
+public DispenseurC: nat * Controleur`typeActeur * Contexte * nat1 * bool ==> DispenseurC
+	DispenseurC(id, type, envir, p, isP) ==
+		(ID := id;
+		Type := type;
+		Corr := <NUL>;
+		Env := envir; 
+		periode := p;
+		estPeriodique := isP;
+		);
+		
+		public Finir: () ==> ()
+Finir() ==
+  fini := true;
+
+public estFini: () ==> ()
+estFini() ==
+  skip;
+		
+--simule action du DispenseurC
+	public Action: () ==> ()
+	Action() ==
+		(if (Corr = <C>)    then Application`env.DispC();
+		Corr := <NUL>; --RA0 de la variable--
+		);
+
+public SetCorrection: Controleur`typeMissile ==> ()
+	SetCorrection(cor) ==
+		Corr := cor
+pre (cor = <C>) or (cor = <NUL>);
+
+public GetCorrection: () ==> Controleur`typeMissile
+	GetCorrection() ==
+		return Corr;
+
+sync
+	per estFini => fini;
+end DispenseurC

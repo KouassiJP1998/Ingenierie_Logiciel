@@ -1,0 +1,25 @@
+
+
+
+class SystemeRTP
+-- classe qui configure le système: Pilote + 2 Regulateurs + 2 capteurs
+instance variables
+--crée des instances "public static" pour permettre l'accès à partir de toutes les classes du modèle  
+public static  Pilote	: Controleur := new Controleur(8, 70);  -- un seul système de pilotage qui regule la temperature (autour de 8°) et la pression (autour de 70% de la pression nominale)
+public static CapteurTemperature1	: CapteurTemperature := new CapteurTemperature(1, <CAPTEUR_TEMPERATURE>, 0);  -- un seul capteur de température
+public static CapteurPression1	: CapteurPression := new CapteurPression(2, <CAPTEUR_PRESSION>, 0);  -- un seul capteur de pression
+public static RegulateurTemperature1	: RegulateurTemperature := new RegulateurTemperature(3, <REGULATEUR_TEMPERATURE>); -- un seul regulateur de temperature
+public static RegulateurPression1	: RegulateurPression := new RegulateurPression(4, <REGULATEUR_PRESSION>); -- un seul régulateur de pression
+
+
+operations
+-- Pilote gère les 4 acteurs suivants:2 capteurs + 2 regulateurs
+public SystemeRTP: () ==> SystemeRTP
+	SystemeRTP() ==
+		(
+		Pilote.AjouterActeur(CapteurTemperature1.GetID(), CapteurTemperature1.GetType());
+		Pilote.AjouterActeur(CapteurPression1.GetID(), CapteurPression1.GetType());
+		Pilote.AjouterActeur(RegulateurTemperature1.GetID(), RegulateurTemperature1.GetType());
+		Pilote.AjouterActeur(RegulateurPression1.GetID(), RegulateurPression1.GetType());
+		);
+end SystemeRTP

@@ -1,0 +1,50 @@
+class DispenseurC is subclass of Dispenseur
+
+instance variables
+fini : bool := false;
+
+operations
+
+public DispenseurC: nat * Controleur`typeActeur ==> DispenseurC
+	DispenseurC(id, type) ==
+		(ID := id;
+		Type := type;
+		Corr := <NUL>;
+		);
+		
+		public Finir: () ==> ()
+Finir() ==
+  fini := true;
+
+public estFini: () ==> ()
+--mutex(Action); 
+ estFini() ==
+  skip;
+		
+--simule action du DispenseurC
+	public Action: () ==> ()
+	Action() ==
+		(if (Corr = <C>)    then Application`env.DispC();
+		Corr := <NUL>; --RA0 de la variable--
+		);
+
+--async
+public SetCorrection: Controleur`typeMissile ==> ()
+	SetCorrection(cor) ==
+		Corr := cor
+pre (cor = <C>) or (cor = <NUL>);
+
+public GetCorrection: () ==> Controleur`typeMissile
+	GetCorrection() == return Corr;
+
+sync
+  --mutex(Action); 
+  per estFini=> fini;
+  mutex(SetCorrection, GetCorrection);
+
+thread
+
+-- periode du  thread (periode, jitter, delay, offset)
+periodic(1000E6,0,0,0) (Action)
+
+end DispenseurC

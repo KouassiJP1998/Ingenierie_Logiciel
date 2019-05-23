@@ -1,0 +1,34 @@
+class SystemeAM
+-- classe qui configure le syst�me: Pilote + 6 Dispenseurs + 3 capteurs
+instance variables
+--cr�e des instances "public static" pour permettre l'acc�s � partir de toutes les classes du mod�le 
+public static leContexte : Contexte := new Contexte(10,0,0); 
+public static  Pilote	: Controleur := new Controleur(25, 90, 180,3, true);
+public static CapteurDistance1	: CapteurDistance := new CapteurDistance(1, <CAPTEUR_DISTANCE>, 0, leContexte,3, true);  -- un seul capteur de distance
+public static CapteurLatitude1	: CapteurLatitude := new CapteurLatitude(2, <CAPTEUR_LATITUDE>, 0, leContexte, 3, true);  -- un seul capteur de latitude
+public static CapteurLongitude1	: CapteurLongitude := new CapteurLongitude(3, <CAPTEUR_LONGITUDE>, 0, leContexte, 3, true);  -- un seul capteur de longitude
+public static DispenseurA1	: DispenseurA := new DispenseurA(4, <DISPENSEUR_A>, leContexte, 5, true);
+public static DispenseurA2	: DispenseurA := new DispenseurA(5, <DISPENSEUR_A>, leContexte, 5, true);
+public static DispenseurB1	: DispenseurB := new DispenseurB(6, <DISPENSEUR_B>, leContexte, 5, true);
+public static DispenseurB2	: DispenseurB := new DispenseurB(7, <DISPENSEUR_B>, leContexte, 5, true);
+public static DispenseurC1	: DispenseurC := new DispenseurC(8, <DISPENSEUR_C>, leContexte, 5, true);
+public static DispenseurC2	: DispenseurC := new DispenseurC(9, <DISPENSEUR_C>, leContexte, 5, true);
+
+operations
+-- Pilote g�re les acteurs suivants:3 capteurs + 6 dispenseurs
+
+public SystemeAM: () ==> SystemeAM
+	SystemeAM() ==
+		(
+		Pilote.AjouterActeur(CapteurDistance1.GetID(), CapteurDistance1.GetType());
+		Pilote.AjouterActeur(CapteurLatitude1.GetID(), CapteurLatitude1.GetType());
+		Pilote.AjouterActeur(CapteurLongitude1.GetID(), CapteurLongitude1.GetType());
+		
+		Pilote.AjouterActeur(DispenseurA1.GetID(), DispenseurA1.GetType());
+		Pilote.AjouterActeur(DispenseurA2.GetID(), DispenseurA2.GetType());
+		Pilote.AjouterActeur(DispenseurB1.GetID(), DispenseurB1.GetType());
+		Pilote.AjouterActeur(DispenseurB2.GetID(), DispenseurB2.GetType());
+		Pilote.AjouterActeur(DispenseurC1.GetID(), DispenseurC1.GetType());
+		Pilote.AjouterActeur(DispenseurC2.GetID(), DispenseurC2.GetType());
+		);
+end SystemeAM
